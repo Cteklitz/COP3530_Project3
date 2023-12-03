@@ -26,7 +26,10 @@ void parseBooks(hashTable& hashtable)
     string tempS;
     getline(fin, tempS); // skips the first line of the file
 
-    for(int i = 0; i < 1000; i++) // for loop for testing, change to while(fin >> temp) for final
+    int i = 0;
+    bool last = false;
+
+    while(!last)// for loop for testing, change to while(fin >> temp) for final
     {
         cout << i << endl;
         getline(fin, tempS);
@@ -35,6 +38,12 @@ void parseBooks(hashTable& hashtable)
         string word = "";
         string name = "";
 
+        if (tempS == "")
+        {
+            last = true;
+            break;
+        }
+
         auto k = tempS.begin();
 
         while (*k != ',') // proccesses the ISBN
@@ -42,16 +51,25 @@ void parseBooks(hashTable& hashtable)
             word += *k;
             k++;
         }
-        cout << word << endl;
+       // cout << word << endl;
         tempB.setISBN(word);
         word = "";
         k++;
 
         if (*k == '"') // proccesses the title, has to account for some titles having commas
         {
+            int skips = 0;
             k++;
-            while (*k != '"')
+            while (*k != '"' || skips != 0)
             {
+                if (*k == '\\')
+                {
+                    skips += 2;
+                }
+                else if(*k == '"')
+                {
+                    skips--;
+                }
                 word += *k;
             k++;
             }
@@ -65,7 +83,7 @@ void parseBooks(hashTable& hashtable)
              k++;
            }
         }
-        cout << word << endl;
+        //cout << word << endl;
         tempB.setName(word);
         test.push_back(word);
         word = "";
@@ -73,9 +91,18 @@ void parseBooks(hashTable& hashtable)
 
         if (*k == '"') // proccesses the author, has to account for some titles having commas
         {
+            int skips = 0;
             k++;
-            while (*k != '"')
+            while (*k != '"' || skips != 0)
             {
+                if (*k == '\\')
+                {
+                    skips += 2;
+                }
+                else if(*k == '"')
+                {
+                    skips--;
+                }
                 word += *k;
             k++;
             }
@@ -89,7 +116,7 @@ void parseBooks(hashTable& hashtable)
              k++;
            }
         }
-        cout << word << endl;
+        //cout << word << endl;
         tempB.setAuthor(word);
         word = "";
         k++;
@@ -99,12 +126,13 @@ void parseBooks(hashTable& hashtable)
             word += *k;
             k++;
         }
-        cout << word << endl << endl;
+        //cout << word << endl << endl;
         tempB.setYear(stoi(word));
         word = "";
         k++;
 
         hashtable.insert(tempB);
+        i++;
     }
 
     cout << "BOOKS PROCCESSED" << endl;
@@ -119,7 +147,7 @@ void parseBooks(hashTable& hashtable)
 
 int main()
 {
-    hashTable hashtable(500,0.7);
+    hashTable hashtable(100000,0.7);
 
     parseBooks(hashtable);
 
