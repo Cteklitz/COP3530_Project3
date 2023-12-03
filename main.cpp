@@ -16,7 +16,7 @@ Project 3
 
 using namespace std;
 
-void parseBooks(hashTable& hashtable)
+void parseBooks(hashTable& hashtableName, hashTable& hashtableISBN)
 {
     vector<string> test; // for testing
 
@@ -31,7 +31,7 @@ void parseBooks(hashTable& hashtable)
 
     while(!last)// for loop for testing, change to while(fin >> temp) for final
     {
-        cout << i << endl;
+        //cout << i << endl;
         getline(fin, tempS);
         book tempB;
 
@@ -131,25 +131,19 @@ void parseBooks(hashTable& hashtable)
         word = "";
         k++;
 
-        hashtable.insert(tempB);
+        hashtableName.insertbyName(tempB);
+        hashtableISBN.insertbyISBN(tempB);
         i++;
-    }
-
-    cout << "BOOKS PROCCESSED" << endl;
-
-    for (auto i : test)
-    {
-        cout << i << endl;
-        book testB = hashtable.getBook(i);
-        cout << testB.getName() << ", " << testB.getAuthor() << ", " << testB.getYear() << ", " << testB.getISBN() << endl;
     }
 }
 
+
 int main()
 {
-    hashTable hashtable(100000,0.7);
+    hashTable hashtableTitle(100000,0.7);
+    hashTable hashtableISBN(100000,0.7);
 
-    parseBooks(hashtable);
+    parseBooks(hashtableTitle, hashtableISBN);
 
     return 0;
 }

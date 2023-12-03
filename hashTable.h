@@ -44,7 +44,47 @@ class hashTable
             return out;
         }
 
-        void insert(book in)
+        void insertbyISBN(book in)
+        {
+            long _hash = hash(in.getISBN());           
+
+            pair<string, book> _new;
+            _new.first = in.getISBN();
+            _new.second = in;
+
+            container[_hash].push_back(_new);
+
+            size++;
+
+            // todo: implement growth when LF reached
+            if ((size / maxCap) > loadFactor)
+            {
+                vector<list<pair<string,book>>> tempContainer;
+                tempContainer = container;
+
+                container.clear();
+                size = 0;
+                maxCap = maxCap * 2;
+                for (int i = 0; i < maxCap; i++)
+                {
+                    list<pair<string,book>> temp;
+                    container.push_back(temp);
+                }
+
+                for (int i = 0; i < maxCap / 2; i++)
+                {
+                    if (!tempContainer[i].empty())
+                    {
+                        for (auto j : tempContainer[i])
+                        {
+                            this->insertbyISBN(j.second);
+                        }
+                    }
+                }
+            }
+        }
+
+        void insertbyName(book in)
         {
             long _hash = hash(in.getName());           
 
@@ -77,20 +117,20 @@ class hashTable
                     {
                         for (auto j : tempContainer[i])
                         {
-                            this->insert(j.second);
+                            this->insertbyName(j.second);
                         }
                     }
                 }
             }
         }
 
-        book getBook(string _name)
+        book getBook(string in)
         {
-            long _hash = hash(_name);
+            long _hash = hash(in);
 
             for (auto i : container[_hash])
             {
-                if (i.first == _name)
+                if (i.first == in)
                 {
                     return i.second;
                 }
