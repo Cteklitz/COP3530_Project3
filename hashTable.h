@@ -1,3 +1,4 @@
+
 #pragma once
 #include <iostream>
 #include <string>
@@ -5,6 +6,7 @@
 #include <vector>
 #include <cmath>
 #include "book.h"
+
 
 using namespace std;
 
@@ -34,7 +36,7 @@ class hashTable
             long out = 0;
             for (int i = 0; i < key.length(); i++)
             {
-                out += (key[i] * (pow(31, i)));
+                out += (abs(int(key[i])) * i);
             }
 
             out = out % maxCap;
@@ -61,6 +63,7 @@ class hashTable
                 tempContainer = container;
 
                 container.clear();
+                size = 0;
                 maxCap = maxCap * 2;
                 for (int i = 0; i < maxCap; i++)
                 {
