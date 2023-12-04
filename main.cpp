@@ -8,6 +8,8 @@ Project 3
 #include "hashTable.h"
 #include "book.h"
 #include "bTree.h"
+#include "user.h"
+#include "rating.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -19,10 +21,113 @@ Project 3
 
 using namespace std;
 
+long long ISBNtoInt(string in)
+{
+    long long out = 0;
+    string sOut = "";
+
+    for (int i = 0; i < in.length(); i++)
+    {
+        if (!isdigit(in[i]))
+        {
+            //cout << in[i];
+            sOut += '0';
+        }
+        else
+        {
+            sOut += in[i];
+        }
+    }
+
+    out = stoll(sOut);
+    return out;
+}
+
+void parseUsers(vector<user>& users) // since users are in order by id in Users.csv, they will be indexed by ID in the vector by pushing them back in order
+{                                    // also parses the ratings for the users
+    // Users.csv
+    fstream fin;
+    fin.open("data/Users.csv", ios::in);
+
+    string tempS;
+    getline(fin, tempS); // skips the first line of the file
+
+    int i = 0;
+    bool last = false;
+
+    while(!last)
+    {
+        getline(fin, tempS);
+        string sId = "";
+
+        if (tempS == "")
+        {
+            last = true;
+            break;
+        }
+
+        for (int k = 0; tempS[k] != ','; k++)
+        {
+            sId += tempS[k];
+        }
+        //cout << sId << endl;
+
+        user tempU(stoi(sId));
+        users.push_back(tempU);
+    }
+
+    fin.close();
+
+    // Ratings.csv
+    fin.open("data/Ratings.csv", ios::in);
+    getline(fin, tempS); // skips the first line of the file
+
+    last = false;
+    while(!last)
+    {
+        i++;
+        // cout << i << " ";
+        getline(fin, tempS);
+        vector<string> lines;
+        string cur = "";
+
+        if (tempS == "")
+        {
+            last = true;
+            break;
+        }
+
+        tempS += ",";
+
+        for (int k = 0; k < tempS.length(); k++)
+        {           
+            if (tempS[k] == ',')
+            {
+                lines.push_back(cur);
+                cur = "";
+            }
+            else if (tempS[k] == '"' || tempS[k] == '\\')
+            {
+                // skips formatting errors in the csv
+                //cout << tempS << endl;
+            }
+            else
+            {
+                cur += tempS[k];
+            }
+        }
+
+        //cout << lines[0] << ", " << lines[1] << ", " << lines[2] << endl;
+
+        rating tempR(ISBNtoInt(lines[1]), stoi(lines[0]), stoi(lines[2]));
+        users[stoi(lines[0])].addRating(tempR);
+    }
+
+    fin.close();
+}
+
 void parseBooksHash(hashTable& hashtable, int type)
 {
-    vector<string> test; // for testing
-
     fstream fin;
     fin.open("data/Books.csv", ios::in);
 
@@ -32,7 +137,7 @@ void parseBooksHash(hashTable& hashtable, int type)
     int i = 0;
     bool last = false;
 
-    while(!last)// for loop for testing, change to while(fin >> temp) for final
+    while(!last) // loops thru all lines of Books.csv
     {
         //cout << i << endl;
         getline(fin, tempS);
@@ -88,7 +193,6 @@ void parseBooksHash(hashTable& hashtable, int type)
         }
         //cout << word << endl;
         tempB.setName(word);
-        test.push_back(word);
         word = "";
         k++;
 
@@ -292,6 +396,7 @@ int main()
         hashTable* nameHash;
         hashTable* ISBNHash;
         bTree* ISBNBTree;
+        vector<user> users;
 
         vector<string> input;
         string raw;
@@ -327,14 +432,25 @@ int main()
         }
         else if (input[0] == "load")
         {
-            // load hash by name
+            // load users
             auto start = chrono::system_clock::now();
+
+            users.clear();
+            parseUsers(users);
+
+            auto end = chrono::system_clock::now();
+            chrono::duration<double> dur = end-start;
+
+            cout << "Users data loaded. Loading took: " << dur.count() << " seconds" << endl;
+
+            // load hash by name
+            start = chrono::system_clock::now();
 
             nameHash = new hashTable(nameHashStart, nameHashLF);
             parseBooksHash(*nameHash, 0);
 
-            auto end = chrono::system_clock::now();
-            chrono::duration<double> dur = end-start;
+            end = chrono::system_clock::now();
+            dur = end-start;
 
             cout << "Hash Table, hashed by title, loaded. Loading took: " << dur.count() << " seconds" << endl;
 

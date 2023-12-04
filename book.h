@@ -1,9 +1,9 @@
-
 #pragma once
 #include <iostream>
 #include <string>
 #include <list>
 #include <vector>
+#include "rating.h"
 
 
 using namespace std;
@@ -15,6 +15,7 @@ class book
         string ISBN;
         int year;
         string author;
+        vector<rating> ratings;
 
     public:
         book()
@@ -48,6 +49,10 @@ class book
         {
             year = in;
         }
+        void addRating(rating in)
+        {
+            ratings.push_back(in);
+        }
 
         string getName()
         {
@@ -64,6 +69,10 @@ class book
         int getYear()
         {
             return year;
+        }
+        vector<rating> getRatings()
+        {
+            return ratings;
         }
 
 };
