@@ -27,6 +27,23 @@ class user
     {
         return ratings;
     }
+    vector<rating> getRatingsScored(long long in, int _score) // returns a vector of ratings that are >= to _score and not the inputed book
+    {
+        vector<rating> out;
+        
+        for (auto i : ratings)
+        {
+            if (i.getISBN() != in)
+            {
+                if (i.getScore() >= _score)
+                {
+                    out.push_back(i);
+                }
+            }
+        }
+
+        return out;
+    }
     int getId()
     {
         return id;

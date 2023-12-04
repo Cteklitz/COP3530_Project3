@@ -2,7 +2,10 @@
 #include <iostream>
 #include <string>
 #include <list>
+#include <string>
 #include <vector>
+
+using namespace std;
 
 class rating
 {
@@ -10,13 +13,15 @@ class rating
     long long ISBN;
     int user;
     int score;
+    string sISBN;
 
     public:
-    rating(long long _ISBN, int _user, int _score)
+    rating(long long _ISBN, int _user, int _score, string _sISBN)
     {
         ISBN = _ISBN;
         user = _user;
         score = _score;
+        sISBN = _sISBN;
     }
 
     long long getISBN()
@@ -30,5 +35,9 @@ class rating
     int getScore()
     {
         return score;
+    }
+    string getsISBN()
+    {
+        return sISBN;
     }
 };

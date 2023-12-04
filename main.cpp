@@ -18,6 +18,7 @@ Project 3
 #include <vector>
 #include <ctime>
 #include <chrono>
+#include <unordered_set>
 
 using namespace std;
 
@@ -118,9 +119,11 @@ void parseUsers(vector<user>& users) // since users are in order by id in Users.
         }
 
         //cout << lines[0] << ", " << lines[1] << ", " << lines[2] << endl;
-
-        rating tempR(ISBNtoInt(lines[1]), stoi(lines[0]), stoi(lines[2]));
-        users[stoi(lines[0])].addRating(tempR);
+        if (lines[2] != "0")
+        {
+            rating tempR(ISBNtoInt(lines[1]), stoi(lines[0]), stoi(lines[2]), lines[1]);
+            users[stoi(lines[0])].addRating(tempR);
+        }
     }
 
     fin.close();
@@ -392,11 +395,14 @@ int main()
         float ISBNHashLF = 0.5;
         int ISBNHashStart = 100000;
         int ISBNBTreeMinDeg = 3;
+        int nameSearchType = 0; // 0 = hash, 1 = trie tree
+        int ISBNSearchType = 0; // 0 = hash, 1 = b tree
+        int minScore = 7; // min score to recommend a book
 
         hashTable* nameHash;
         hashTable* ISBNHash;
         bTree* ISBNBTree;
-        vector<user> users;
+        vector<user>* users;
 
         vector<string> input;
         string raw;
@@ -429,14 +435,89 @@ int main()
             cout << "search ISBN [btree/hash] [\"ISBN\"] --- searches either the b-tree or hash table for an ISBN" << endl;
             cout << "settings --- displays the current settings, data must be reloaded for changes to take effect" << endl;
             cout << "[titleLF/ISBNStartCap/bTreeMinDeg/...] [value] --- update the value for a setting, data must be reloaded for changes to take effect" << endl;
+            cout << "recommend [\"title\"] --- will recommend books based a book inputted" << endl;
         }
-        else if (input[0] == "load")
+        else if (input[0] == "recommend" || input[0] == "rec")
+        {
+            auto start = chrono::system_clock::now();
+
+            book in;
+            vector<user> reviewers;
+            vector<rating> recsR;
+            
+            long long ISBN;
+
+            if (nameSearchType == 0) // hash name search
+            {
+                in = nameHash->search(input[1]);
+                if (in.getName() == "")
+                {
+                    cout << "Book title was not found!" << endl;
+                }
+                else
+                {
+                    ISBN = ISBNtoInt(in.getISBN());
+                    cout << in.getName() << ", " << in.getISBN() << ", " << ISBN << endl;
+                    cout << users->at(35).getId() << endl;
+                    for (auto i : *users) // goes thru all users and adds the ones that reviewed the input book >= minScore to reviewers
+                    {
+                        if (i.checkISBNScore(ISBN, minScore))
+                        {
+                            reviewers.push_back(i);
+                        }
+                    }
+
+                    for (auto i : reviewers) // goes thru the reveiwers and gets all the books they rated >= minScore
+                    {
+                        vector<rating> temp = i.getRatingsScored(ISBN, minScore);
+                        for (auto j : temp)
+                        {
+                            bool found = false;
+                            for (auto l : recsR)
+                            {
+                                if (l.getISBN() == ISBN) // prevent duplicates
+                                {
+                                    found = true;
+                                }
+                            }
+                            if (!found)
+                            {
+                                recsR.push_back(j);
+                                cout << j.getScore() << endl;
+                            }
+                        }
+                    }
+                }
+            }
+            else if (nameSearchType == 1) // trie name search
+            {
+
+            }
+
+            if (ISBNSearchType == 0) // hash isbn search
+            {
+                for (auto i : recsR)
+                {
+                    book temp = ISBNHash->search(i.getsISBN());
+                    if (temp.getName() != "")
+                    {
+                        cout << temp.getName() << ", by " << temp.getAuthor() << ". Published in " <<  temp.getYear() << endl;
+                    }
+                }
+            }
+
+            auto end = chrono::system_clock::now();
+            chrono::duration<double> dur = end-start;
+
+            cout << "Recommendation complete. Recommendation took: " << dur.count() << " seconds" << endl;
+        }
+        else if (input[0] == "load" || input[0] == "l")
         {
             // load users
             auto start = chrono::system_clock::now();
 
-            users.clear();
-            parseUsers(users);
+            users = new vector<user>;
+            parseUsers(*users);
 
             auto end = chrono::system_clock::now();
             chrono::duration<double> dur = end-start;
@@ -478,7 +559,7 @@ int main()
 
             // Other load functions go here
         }
-        else if (input[0] == "search")
+        else if (input[0] == "search" || input[0] == "s")
         {
             if (input[1] == "ISBN")
             {
@@ -570,6 +651,18 @@ int main()
         {
             ISBNBTreeMinDeg = stoi(input[1]);
         }
+        else if (input[0] == "titleSearchType")
+        {
+            nameSearchType = stoi(input[1]);
+        }
+        else if (input[0] == "ISBNSearchType")
+        {
+            ISBNSearchType = stoi(input[1]);
+        }
+        else if (input[0] == "minScore")
+        {
+            minScore = stoi(input[1]);
+        }
         else if (input[0] == "settings")
         {
             cout << "Hash by title max load factor: " << nameHashLF << endl;
@@ -577,8 +670,27 @@ int main()
             cout << "Hash by title starting capacity: " << nameHashStart << endl;
             cout << "Hash by ISBN starting capacity: " << ISBNHashStart << endl;
             cout << "ISBN B-Tree minimum degree: " << ISBNBTreeMinDeg << endl;
+            cout << "Minimum score to recommend a book: " << minScore << endl;
+            cout << "Title search type: ";
+            if (nameSearchType == 0)
+            {
+                cout << "Hash Table" << endl;
+            }
+            else
+            {
+                cout << "Trie Tree" << endl;
+            }
+            cout << "ISBN search type: ";
+            if (ISBNSearchType == 0)
+            {
+                cout << "Hash Table" << endl;
+            }
+            else
+            {
+                cout << "B-Tree" << endl;
+            }
         }
-        else if (input[0] == "exit")
+        else if (input[0] == "exit" || input[0] == "e")
         {
             cont = false;
         }
