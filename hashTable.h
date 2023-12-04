@@ -124,7 +124,7 @@ class hashTable
             }
         }
 
-        book getBook(string in)
+        book search(string in)
         {
             long _hash = hash(in);
 
