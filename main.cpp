@@ -486,25 +486,25 @@ int main()
     bool cont = true;
     cout << "Welcome to BookBuddy! Type help for a list of commands" << endl;
 
+    float nameHashLF = 0.5;
+    int nameHashStart = 100000;
+    float ISBNHashLF = 0.5;
+    int ISBNHashStart = 100000;
+    int ISBNBTreeMinDeg = 3;
+    int nameSearchType = 0; // 0 = hash, 1 = trie tree
+    int ISBNSearchType = 0; // 0 = hash, 1 = b tree
+    int minScore = 8; // min score to recommend a book
+    int maxResults = 20; // max number of results to be displayed
+    int maxPerReviewer = 5;
+
+    hashTable* nameHash;
+    hashTable* ISBNHash;
+    bTree* ISBNBTree;
+    vector<user>* users;
+    TrieTree* nameTree;
+
     while (cont) // main user input loop, CLI for now, will change to GUI if time allows
     {
-        float nameHashLF = 0.5;
-        int nameHashStart = 100000;
-        float ISBNHashLF = 0.5;
-        int ISBNHashStart = 100000;
-        int ISBNBTreeMinDeg = 3;
-        int nameSearchType = 0; // 0 = hash, 1 = trie tree
-        int ISBNSearchType = 0; // 0 = hash, 1 = b tree
-        int minScore = 8; // min score to recommend a book
-        int maxResults = 20; // max number of results to be displayed
-        int maxPerReviewer = 5;
-
-        hashTable* nameHash;
-        hashTable* ISBNHash;
-        bTree* ISBNBTree;
-        vector<user>* users;
-        TrieTree* nameTree;
-
         vector<string> input;
         string raw;
         string temp = "";
@@ -569,6 +569,7 @@ int main()
                     for (auto i : reviewers) // goes thru the reveiwers and gets all the books they rated >= minScore
                     {
                         vector<rating> temp = i.getRatingsScored(ISBN, minScore);
+                        int k = 0;
                         for (auto j : temp)
                         {
                             bool found = false;
@@ -581,7 +582,15 @@ int main()
                             }
                             if (!found)
                             {
-                                recsR.push_back(j);
+                                if (k < maxPerReviewer)
+                                {
+                                    recsR.push_back(j);
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                                k++;
                             }
                         }
                     }
@@ -608,7 +617,7 @@ int main()
                     for (auto i : reviewers) // goes thru the reveiwers and gets all the books they rated >= minScore
                     {
                         vector<rating> temp = i.getRatingsScored(ISBN, minScore);
-                        int l = 0;
+                        int k = 0;
                         for (auto j : temp)
                         {
                             bool found = false;
@@ -621,11 +630,11 @@ int main()
                             }
                             if (!found)
                             {
-                                if (l < maxPerReviewer)
+                                if (k < maxPerReviewer)
                                 {
                                     recsR.push_back(j);
                                 }
-                                l++;
+                                k++;
                             }
                         }
                     }
@@ -866,7 +875,7 @@ int main()
         {
             maxResults = stoi(input[1]);
         }
-        else if (input[0] == "maxPerReviewer")
+        else if (input[0] == "maxPerUser")
         {
             maxPerReviewer = stoi(input[1]);
         }
@@ -879,7 +888,7 @@ int main()
             cout << "bTreeMinDeg: " << ISBNBTreeMinDeg << " --- The minimum degree for the b-tree" << endl;
             cout << "minScore: " << minScore << " --- The minimum score for a reviwer to be consider to have 'liked' a book" << endl;
             cout << "maxResults: " << maxResults << " --- The max amount of results that will be displayed" << endl;
-            cout << "maxPerReviewer: " << maxPerReviewer << " --- The max amount of results that each reviewer can contribute to the output" << endl;
+            cout << "maxPerUser: " << maxPerReviewer << " --- The max amount of results that each reviewer can contribute to the output" << endl;
             cout << "titleSearchType: " << nameSearchType << " --- The type of tree used for recommendations, 0 = hash, 1 = trie tree" << endl;
             cout << "ISBNSearchType: " << ISBNSearchType << " --- The type of tree used for recommendations, 0 = hash, 1 = b-tree " << endl;
         }
