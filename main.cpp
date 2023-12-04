@@ -484,7 +484,7 @@ void parseBooksB(bTree& btree)
 int main()
 {
     bool cont = true;
-    cout << "Welcome to __! Type help for a list of commands" << endl;
+    cout << "Welcome to BookBuddy! Type help for a list of commands" << endl;
 
     while (cont) // main user input loop, CLI for now, will change to GUI if time allows
     {

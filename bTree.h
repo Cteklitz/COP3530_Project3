@@ -23,10 +23,10 @@ class Node
         isLeaf = _isLeaf;
     }
 
-    book search(long long in)
+    book search(long long in) // searchs for the book with the given ISBN
     {
         int i = 0;
-        while (i < keys.size() && keys[i].first < in)
+        while (i < keys.size() && keys[i].first < in) // sets i to the value where either the key or a child containing it is
         {
             i++;
         }
@@ -35,13 +35,13 @@ class Node
         {
             return keys[i].second;
         }
-        if (isLeaf)
+        if (isLeaf) // if key was not found and the node is a leaf, the key is not present, empty book is returned
         {
             book temp;
             return temp;
         }
 
-        return children[i]->search(in);
+        return children[i]->search(in); // recursive call on child if the key was not in the node
     }
 
     void insert(pair<long long,book> in)
@@ -81,7 +81,7 @@ class Node
 
             if (children[j + 1]->keys.size() == 2 * minDeg - 1) // checks if the child is full
             {
-                split(j + 1, children[j + 1]);
+                split(j + 1, children[j + 1]); // splits the child at j + 1
 
                 if (keys[j + 1].first < in.first)
                 {
@@ -89,11 +89,11 @@ class Node
                 }
             }
 
-            children[j + 1]->insert(in);
+            children[j + 1]->insert(in); // inserts the new key to the node after the split
         }
     }
 
-    void split(int i, Node* inNode)
+    void split(int i, Node* inNode) // splits nodes 
     {
         Node* newNode = new Node(inNode->minDeg, inNode->isLeaf);
         
@@ -132,16 +132,15 @@ class bTree
     int minDeg;
 
     public:
-        long long ISBNtoInt(string in)
+        long long ISBNtoInt(string in) // converts ISBN strings to long long ints
         {
             long long out = 0;
             string sOut = "";
 
             for (int i = 0; i < in.length(); i++)
             {
-                if (!isdigit(in[i]))
-                {
-                    //cout << in[i];
+                if (!isdigit(in[i])) // counts non didget values as 0 (X is technically worth 10 not 0, but the odds of a data collision due to this are very small)
+                {                    // ISBNs shouldnt have values other than 0-9 and X, but the data set has some errors, so all non valid values are just counted as 0
                     sOut += '0';
                 }
                 else
@@ -162,7 +161,7 @@ class bTree
 
         book search(string in)
         {
-            return root->search(ISBNtoInt(in));
+            return root->search(ISBNtoInt(in)); 
         }
 
         void insert(pair<long long,book> in)

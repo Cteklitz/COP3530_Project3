@@ -1,4 +1,3 @@
-
 #pragma once
 #include <iostream>
 #include <string>
@@ -13,7 +12,7 @@ using namespace std;
 class hashTable
 {
     private:
-        vector<list<pair<string,book>>> container;
+        vector<list<pair<string,book>>> container; // uses lists for data collisions
         int size;
         int maxCap;
         float loadFactor;
@@ -34,10 +33,10 @@ class hashTable
 
         long hash(string key)
         {
-            long out = 0;
+            long long out = 0;
             for (int i = 0; i < key.length(); i++)
             {
-                out += (abs(int(key[i])) * i);
+                out += (abs(int(key[i])) * i); // sum(basic [ascii value] * i) hash function
             }
 
             out = out % maxCap;
@@ -47,20 +46,19 @@ class hashTable
 
         void insertbyISBN(book in)
         {
-            long _hash = hash(in.getISBN());           
+            long _hash = hash(in.getISBN()); // hashes the input isbn          
 
             pair<string, book> _new;
             _new.first = in.getISBN();
             _new.second = in;
 
-            container[_hash].push_back(_new);
+            container[_hash].push_back(_new); // puts the input book into its bucket
 
             size++;
 
-            // todo: implement growth when LF reached
-            if ((size / maxCap) > loadFactor)
+            if ((size / maxCap) > loadFactor) // doubles the size of the container when the max load factor is reached and rehashes all data
             {
-                vector<list<pair<string,book>>> tempContainer;
+                vector<list<pair<string,book>>> tempContainer; // temp container to hold old data to be rehashed to new container
                 tempContainer = container;
 
                 container.clear();
@@ -85,7 +83,7 @@ class hashTable
             }
         }
 
-        void insertbyName(book in)
+        void insertbyName(book in) // fucntions same as insertByISBN but using name as key
         {
             long _hash = hash(in.getName());           
 
@@ -124,7 +122,7 @@ class hashTable
             }
         }
 
-        book search(string in)
+        book search(string in) // returns the book at the location of the given key
         {
             long _hash = hash(in);
 
