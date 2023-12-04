@@ -182,9 +182,9 @@ class bTree
                     newNode->split(0, root);
 
                     int i = 0;
-                    if (newNode->keys[0].first < in.first)
+                    if (newNode->keys[0].first < in.first) // assigns i to which child the new key goes to
                     {
-                        i = 1;
+                        i++;
                     }
 
                     newNode->children[i]->insert(in);
