@@ -28,7 +28,7 @@ private:
 public:
     TrieTree() {
         root = new TrieNode();
-    }
+    } 
 
     ~TrieTree() {
         delete root;
@@ -48,7 +48,7 @@ public:
         current->bookInfo = &b;
     }
 
-    bool search(const string& title) {
+    bool searchB(const string& title) {
         TrieNode* current = root;
 
         for (char ch : title) {
@@ -66,16 +66,23 @@ public:
 
         for (char ch : title) {
             if (current->children.find(ch) == current->children.end()) {
-                return book(); 
+                book temp;
+                return temp; 
             }
             current = current->children[ch];
         }
          
         if (current->isLeaf) { 
+            if (current->bookInfo == nullptr)
+            {
+                book temp;
+                return temp;
+            }
             return *(current->bookInfo); 
         }
         else {
-            return book(); 
+            book temp;
+            return temp; 
         } 
     }
 };
