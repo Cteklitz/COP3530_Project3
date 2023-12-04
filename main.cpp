@@ -10,6 +10,7 @@ Project 3
 #include "bTree.h"
 #include "user.h"
 #include "rating.h"
+#include "trieTree.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -126,6 +127,101 @@ void parseUsers(vector<user>& users) // since users are in order by id in Users.
         }
     }
 
+    fin.close();
+}
+
+void parseBooksT(TrieTree& trieTree) {
+    fstream fin;
+    fin.open("data/Books.csv", ios::in);
+
+    string tempS;
+    getline(fin, tempS);
+
+    bool last = false;
+
+    while (!last) {
+        getline(fin, tempS);
+        book tempB;
+
+        string word = "";
+        string name = "";
+
+        if (tempS == "") {
+            last = true;
+            break;
+        }
+
+        auto k = tempS.begin();
+
+        while (*k != ',') {
+            word += *k;
+            k++;
+        }
+
+        tempB.setISBN(word);
+        word = "";
+        k++;
+
+        if (*k == '"') {
+            int skips = 0;
+            k++;
+            while (*k != '"' || skips != 0) {
+                if (*k == '\\') {
+                    skips += 2;
+                } else if (*k == '"') {
+                    skips--;
+                }
+                word += *k;
+                k++;
+            }
+            k++;
+        } else {
+            while (*k != ',') {
+                word += *k;
+                k++;
+            }
+        }
+
+        tempB.setName(word);
+        word = "";
+        k++;
+
+        if (*k == '"') {
+            int skips = 0;
+            k++;
+            while (*k != '"' || skips != 0) {
+                if (*k == '\\') {
+                    skips += 2;
+                } else if (*k == '"') {
+                    skips--;
+                }
+                word += *k;
+                k++;
+            }
+            k++;
+        } else {
+            while (*k != ',') {
+                word += *k;
+                k++;
+            }
+        }
+
+        tempB.setAuthor(word);
+        word = "";
+        k++;
+
+        while (*k != ',') {
+            word += *k;
+            k++;
+        }
+
+        tempB.setYear(stoi(word));
+        word = "";
+        k++;
+
+        trieTree.insert(tempB);
+
+    }
     fin.close();
 }
 
@@ -403,6 +499,7 @@ int main()
         hashTable* ISBNHash;
         bTree* ISBNBTree;
         vector<user>* users;
+        TrieTree* nameTree;
 
         vector<string> input;
         string raw;
@@ -513,6 +610,7 @@ int main()
         }
         else if (input[0] == "load" || input[0] == "l")
         {
+            auto totStart  = chrono::system_clock::now();
             // load users
             auto start = chrono::system_clock::now();
 
@@ -520,7 +618,7 @@ int main()
             parseUsers(*users);
 
             auto end = chrono::system_clock::now();
-            chrono::duration<double> dur = end-start;
+            chrono::duration<double> dur = end - start;
 
             cout << "Users data loaded. Loading took: " << dur.count() << " seconds" << endl;
 
@@ -531,7 +629,7 @@ int main()
             parseBooksHash(*nameHash, 0);
 
             end = chrono::system_clock::now();
-            dur = end-start;
+            dur = end - start;
 
             cout << "Hash Table, hashed by title, loaded. Loading took: " << dur.count() << " seconds" << endl;
 
@@ -542,7 +640,7 @@ int main()
             parseBooksHash(*ISBNHash, 1);
 
             end = chrono::system_clock::now();
-            dur = end-start;
+            dur = end - start;
 
             cout << "Hash Table, hashed by ISBN, loaded. Loading took: " << dur.count() << " seconds" << endl;
 
@@ -553,11 +651,25 @@ int main()
             parseBooksB(*ISBNBTree);
 
             end = chrono::system_clock::now();
-            dur = end-start;
+            dur = end - start;
 
             cout << "B-Tree, sorted by ISBN, loaded. Loading took: " << dur.count() << " seconds" << endl;
 
-            // Other load functions go here
+            // load trie tree by name
+            start = chrono::system_clock::now();
+
+            nameTree = new TrieTree();
+            parseBooksT(*nameTree);
+
+            end = chrono::system_clock::now();
+            dur = end - start;
+
+            cout << "Trie-Tree, sorted by title, loaded. Loading took: " << dur.count() << " seconds" << endl;
+
+            auto totEnd = chrono::system_clock::now();
+            chrono::duration<double> totDur = totEnd - totStart;
+
+            cout << "All data loaded. Loading took: " << totDur.count() << " seconds" << endl;
         }
         else if (input[0] == "search" || input[0] == "s")
         {
