@@ -19,6 +19,7 @@ class hashTable
         float loadFactor;
 
     public:
+
         hashTable(int _maxCap, float _loadFactor)
         {
             maxCap = _maxCap;
