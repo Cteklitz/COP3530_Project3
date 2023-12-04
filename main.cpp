@@ -219,7 +219,9 @@ void parseBooksT(TrieTree& trieTree) {
         word = "";
         k++;
 
-        trieTree.insert(tempB);
+        book* tempPoint = new book(tempB.getName(), tempB.getISBN(), tempB.getAuthor(), tempB.getYear());
+
+        trieTree.insert(*tempPoint);
 
     }
     fin.close();
@@ -494,6 +496,8 @@ int main()
         int nameSearchType = 0; // 0 = hash, 1 = trie tree
         int ISBNSearchType = 0; // 0 = hash, 1 = b tree
         int minScore = 8; // min score to recommend a book
+        int maxResults = 20; // max number of results to be displayed
+        int maxPerReviewer = 5;
 
         hashTable* nameHash;
         hashTable* ISBNHash;
@@ -528,7 +532,7 @@ int main()
         if (input[0] == "help") 
         {
             cout << "load --- loads all data from csvs, displays how long each loading took" << endl;
-            cout << "search title [\"title\"] --- searchs the hash table for a title" << endl;
+            cout << "search title [trie/hash] [\"title\"] --- searchs either the trie tree or the hash table for a title" << endl;
             cout << "search ISBN [btree/hash] [\"ISBN\"] --- searches either the b-tree or hash table for an ISBN" << endl;
             cout << "settings --- displays the current settings, data must be reloaded for changes to take effect" << endl;
             cout << "[titleLF/ISBNStartCap/bTreeMinDeg/...] [value] --- update the value for a setting, data must be reloaded for changes to take effect" << endl;
@@ -585,18 +589,79 @@ int main()
             }
             else if (nameSearchType == 1) // trie name search
             {
+                in = nameTree->search(input[1]);
+                if (in.getName() == "")
+                {
+                    cout << "Book title was not found!" << endl;
+                }
+                else
+                {
+                    ISBN = ISBNtoInt(in.getISBN());
+                    for (auto i : *users) // goes thru all users and adds the ones that reviewed the input book >= minScore to reviewers
+                    {
+                        if (i.checkISBNScore(ISBN, minScore))
+                        {
+                            reviewers.push_back(i);
+                        }
+                    }
 
+                    for (auto i : reviewers) // goes thru the reveiwers and gets all the books they rated >= minScore
+                    {
+                        vector<rating> temp = i.getRatingsScored(ISBN, minScore);
+                        int l = 0;
+                        for (auto j : temp)
+                        {
+                            bool found = false;
+                            for (auto l : recsR)
+                            {
+                                if (l.getISBN() == ISBN) // prevent duplicates
+                                {
+                                    found = true;
+                                }
+                            }
+                            if (!found)
+                            {
+                                if (l < maxPerReviewer)
+                                {
+                                    recsR.push_back(j);
+                                }
+                                l++;
+                            }
+                        }
+                    }
+                }
             }
 
             if (ISBNSearchType == 0) // hash isbn search
             {
+                int j = 0;              
                 for (auto i : recsR)
                 {
-                    book temp = ISBNHash->search(i.getsISBN());
-                    if (temp.getName() != "")
+                    if (j < maxResults)
                     {
-                        cout << temp.getName() << ", by " << temp.getAuthor() << ". Published in " <<  temp.getYear() << endl;
+                        book temp = ISBNHash->search(i.getsISBN());
+                        if (temp.getName() != "")
+                        {
+                            cout << temp.getName() << ", by " << temp.getAuthor() << ". Published in " <<  temp.getYear() << endl;
+                        }
                     }
+                    j++;
+                }
+            }
+            if (ISBNSearchType == 1) // btree isbn search
+            {
+                int j = 0;
+                for (auto i : recsR)
+                {
+                    if (j < maxResults)
+                    {
+                        book temp = ISBNBTree->search(i.getsISBN());
+                        if (temp.getName() != "")
+                        {
+                            cout << temp.getName() << ", by " << temp.getAuthor() << ". Published in " <<  temp.getYear() << endl;
+                        }
+                    }
+                    j++;
                 }
             }
 
@@ -719,24 +784,49 @@ int main()
             }
             else if (input[1] == "title")
             {
-                auto start = chrono::system_clock::now();
-
-                book temp = nameHash->search(input[2]);               
-
-                auto end = chrono::system_clock::now();
-                chrono::duration<double> dur = end-start;
-
-                cout << "Search complete. Search took: " << dur.count() << " seconds" << endl;
-
-                if (temp.getName() == "")
+                if (input[2] == "hash")
                 {
-                    cout << "Provided title was not found" << endl;
+                    auto start = chrono::system_clock::now();
+
+                    book temp = nameHash->search(input[3]);               
+
+                    auto end = chrono::system_clock::now();
+                    chrono::duration<double> dur = end-start;
+
+                    cout << "Search complete. Search took: " << dur.count() << " seconds" << endl;
+
+                    if (temp.getName() == "")
+                    {
+                        cout << "Provided title was not found" << endl;
+                    }
+                    else
+                    {
+                        cout << "ISBN: " << temp.getISBN() << endl;
+                        cout << "Author: " << temp.getAuthor() << endl;
+                        cout << "Year of Publication: " << temp.getYear() << endl;
+                    }
                 }
-                else
+                else if (input[2] == "trie")
                 {
-                    cout << "ISBN: " << temp.getISBN() << endl;
-                    cout << "Author: " << temp.getAuthor() << endl;
-                    cout << "Year of Publication: " << temp.getYear() << endl;
+                    auto start = chrono::system_clock::now();
+
+                    book temp = nameTree->search(input[3]);               
+
+                    auto end = chrono::system_clock::now();
+                    chrono::duration<double> dur = end-start;
+
+                    cout << "Search complete. Search took: " << dur.count() << " seconds" << endl;
+
+                    if (temp.getName() == "")
+                    {
+                        cout << "Provided title was not found" << endl;
+                    }
+                    else
+                    {
+                        cout << "ISBN: " << temp.getISBN() << endl;
+                        cout << "Author: " << temp.getAuthor() << endl;
+                        cout << "Year of Publication: " << temp.getYear() << endl;
+                    }
                 }
             }
         }
@@ -772,32 +862,26 @@ int main()
         {
             minScore = stoi(input[1]);
         }
+        else if (input[0] == "maxResults")
+        {
+            maxResults = stoi(input[1]);
+        }
+        else if (input[0] == "maxPerReviewer")
+        {
+            maxPerReviewer = stoi(input[1]);
+        }
         else if (input[0] == "settings")
         {
-            cout << "Hash by title max load factor: " << nameHashLF << endl;
-            cout << "Hash by ISBN max load factor: " << ISBNHashLF << endl;
-            cout << "Hash by title starting capacity: " << nameHashStart << endl;
-            cout << "Hash by ISBN starting capacity: " << ISBNHashStart << endl;
-            cout << "ISBN B-Tree minimum degree: " << ISBNBTreeMinDeg << endl;
-            cout << "Minimum score to recommend a book: " << minScore << endl;
-            cout << "Title search type: ";
-            if (nameSearchType == 0)
-            {
-                cout << "Hash Table" << endl;
-            }
-            else
-            {
-                cout << "Trie Tree" << endl;
-            }
-            cout << "ISBN search type: ";
-            if (ISBNSearchType == 0)
-            {
-                cout << "Hash Table" << endl;
-            }
-            else
-            {
-                cout << "B-Tree" << endl;
-            }
+            cout << "titleLF: " << nameHashLF << " --- The maximum load factor for the hash table hashed by ISBN" << endl;
+            cout << "ISBNLF: " << ISBNHashLF  << " --- The maximum load factor for the hash table hashed by ISBN" << endl;
+            cout << "titleStartCap: " << nameHashStart << " --- The starting capacity for the hash table hashed by title" << endl;
+            cout << "ISBNStartCap: " << ISBNHashStart << " --- The starting capacity for the hash table hashed by ISBN" << endl;
+            cout << "bTreeMinDeg: " << ISBNBTreeMinDeg << " --- The minimum degree for the b-tree" << endl;
+            cout << "minScore: " << minScore << " --- The minimum score for a reviwer to be consider to have 'liked' a book" << endl;
+            cout << "maxResults: " << maxResults << " --- The max amount of results that will be displayed" << endl;
+            cout << "maxPerReviewer: " << maxPerReviewer << " --- The max amount of results that each reviewer can contribute to the output" << endl;
+            cout << "titleSearchType: " << nameSearchType << " --- The type of tree used for recommendations, 0 = hash, 1 = trie tree" << endl;
+            cout << "ISBNSearchType: " << ISBNSearchType << " --- The type of tree used for recommendations, 0 = hash, 1 = b-tree " << endl;
         }
         else if (input[0] == "exit" || input[0] == "e")
         {
