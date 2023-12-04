@@ -97,7 +97,6 @@ class hashTable
 
             size++;
 
-            // todo: implement growth when LF reached
             if ((size / maxCap) > loadFactor)
             {
                 vector<list<pair<string,book>>> tempContainer;
