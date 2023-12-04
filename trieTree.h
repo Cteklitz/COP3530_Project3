@@ -1,7 +1,3 @@
-/*
-    File contins the class "trieTree.h" with the functions: insert() and search().
-*/
-
 #pragma once
 #include "book.h"
 #include <iostream>
@@ -63,6 +59,24 @@ public:
         }
 
         return current->isLeaf;
+    }
+
+    book search(const string& title) const {
+        TrieNode* current = root;
+
+        for (char ch : title) {
+            if (current->children.find(ch) == current->children.end()) {
+                return book(); 
+            }
+            current = current->children[ch];
+        }
+         
+        if (current->isLeaf) { 
+            return *(current->bookInfo); 
+        }
+        else {
+            return book(); 
+        } 
     }
 };
 

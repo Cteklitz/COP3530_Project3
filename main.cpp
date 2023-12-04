@@ -493,7 +493,7 @@ int main()
         int ISBNBTreeMinDeg = 3;
         int nameSearchType = 0; // 0 = hash, 1 = trie tree
         int ISBNSearchType = 0; // 0 = hash, 1 = b tree
-        int minScore = 7; // min score to recommend a book
+        int minScore = 8; // min score to recommend a book
 
         hashTable* nameHash;
         hashTable* ISBNHash;
@@ -554,8 +554,6 @@ int main()
                 else
                 {
                     ISBN = ISBNtoInt(in.getISBN());
-                    cout << in.getName() << ", " << in.getISBN() << ", " << ISBN << endl;
-                    cout << users->at(35).getId() << endl;
                     for (auto i : *users) // goes thru all users and adds the ones that reviewed the input book >= minScore to reviewers
                     {
                         if (i.checkISBNScore(ISBN, minScore))
@@ -580,7 +578,6 @@ int main()
                             if (!found)
                             {
                                 recsR.push_back(j);
-                                cout << j.getScore() << endl;
                             }
                         }
                     }
